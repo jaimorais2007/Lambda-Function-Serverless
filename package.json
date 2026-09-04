@@ -1,5 +1,5 @@
 {
-  "name": "auth-cpf",
+  "name": "oficina-mecanica-authenticate",
   "version": "1.0.0",
   "description": "Lambda que valida CPF, consulta existencia/status do cliente e emite JWT",
   "main": "index.js",
