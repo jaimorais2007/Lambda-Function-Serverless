@@ -1,17 +1,22 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, GetCommand } = require('@aws-sdk/lib-dynamodb');
-
-const client = new DynamoDBClient({});
-const ddb = DynamoDBDocumentClient.from(client);
+const pg = require('pg');
 
 const CUSTOMERS_TABLE = process.env.CUSTOMERS_TABLE;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
-const ALLOWED_STATUSES = (process.env.ALLOWED_STATUSES || 'ATIVO')
+const pool = new pg.Pool({
+    host: process.env.RDS_HOSTNAME,
+    user: process.env.RDS_USERNAME,
+    password: process.env.RDS_PASSWORD,
+    database: process.env.RDS_DB_NAME,
+    port: process.env.RDS_PORT || 5432,
+    ssl: { rejectUnauthorized: false }
+});
+
+const ALLOWED_STATUSES = (process.env.ALLOWED_STATUSES || 0)
   .split(',')
   .map((s) => s.trim().toUpperCase())
   .filter(Boolean);
@@ -59,10 +64,12 @@ async function authenticate({ cpf } = {}) {
     return response(400, { message: 'CPF inválido.' });
   }
 
-  const result = await ddb.send(
-    new GetCommand({ TableName: CUSTOMERS_TABLE, Key: { cpf: cleanCpf } })
+  const result = await pool.query(
+    `SELECT * FROM ${CUSTOMERS_TABLE} WHERE cpf = $1`,
+    [cleanCpf]
   );
-  const customer = result.Item;
+
+  const customer = result.rows[0];
 
   if (!customer) {
     return response(404, { message: 'Cliente não encontrado.' });
