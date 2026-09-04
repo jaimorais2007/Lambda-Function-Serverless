@@ -1,0 +1,12 @@
+{
+  "name": "auth-cpf",
+  "version": "1.0.0",
+  "description": "Lambda que valida CPF, consulta existencia/status do cliente e emite JWT",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0"
+  }
+}
