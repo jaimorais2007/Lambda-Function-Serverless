@@ -22,3 +22,8 @@ output "lambda_exec_role_name" {
   description = "Nome da role de execução da Lambda"
   value       = aws_iam_role.lambda_exec.name
 }
+
+output "lambda_security_group_id" {
+  description = "Security group da Lambda (quando anexada a uma VPC), usado para liberar o acesso dela ao Postgres/RDS"
+  value       = try(aws_security_group.lambda_sg[0].id, null)
+}

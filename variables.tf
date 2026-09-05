@@ -11,10 +11,9 @@ variable "project_name" {
 }
 
 variable "jwt_secret" {
-  description = "Segredo usado para assinar os tokens JWT"
+  description = "Segredo usado para assinar os tokens JWT (defina via terraform.tfvars ou -var, não versione o valor real)"
   type        = string
   sensitive   = true
-  default     = "da6e77b42314ee792151df810ed6899e39ce6d27f7cdb3da31454b62f91c961b"
 }
 
 variable "jwt_expires_in" {
@@ -27,4 +26,49 @@ variable "allowed_statuses" {
   description = "Lista de status de cliente aptos a autenticar, separados por vírgula (ex: 'ATIVO,PENDENTE')"
   type        = string
   default     = "ATIVO"
+}
+
+variable "rds_hostname" {
+  description = "Endpoint do banco de dados PostgreSQL (RDS) usado para consultar o cliente pelo CPF"
+  type        = string
+}
+
+variable "rds_port" {
+  description = "Porta do banco de dados PostgreSQL (RDS)"
+  type        = number
+  default     = 5432
+}
+
+variable "rds_username" {
+  description = "Usuário de conexão com o banco de dados RDS"
+  type        = string
+}
+
+variable "rds_password" {
+  description = "Senha de conexão com o banco de dados RDS"
+  type        = string
+  sensitive   = true
+}
+
+variable "rds_db_name" {
+  description = "Nome do banco de dados no RDS"
+  type        = string
+}
+
+variable "customers_table" {
+  description = "Nome da tabela de clientes consultada no RDS"
+  type        = string
+  default     = "customers"
+}
+
+variable "subnet_ids" {
+  description = "Subnets usadas para colocar a Lambda na mesma VPC/subnet do EC2 que roda o Postgres (deixe vazio se o RDS for publicamente acessível). Default: subnet da instância do Tech Challenge (subnet-00c1dffa4498744cf, vpc-04688278103fa8423)."
+  type        = list(string)
+  default     = ["subnet-00c1dffa4498744cf"]
+}
+
+variable "security_group_ids" {
+  description = "Security groups adicionais (além do criado automaticamente para a Lambda) aplicados quando ela é colocada em uma VPC"
+  type        = list(string)
+  default     = []
 }

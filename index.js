@@ -16,10 +16,15 @@ const pool = new pg.Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-const ALLOWED_STATUSES = (process.env.ALLOWED_STATUSES || 0)
+const ALLOWED_STATUSES = (process.env.ALLOWED_STATUSES || '')
   .split(',')
   .map((s) => s.trim().toUpperCase())
   .filter(Boolean);
+
+const SAFE_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
+if (CUSTOMERS_TABLE && !SAFE_IDENTIFIER.test(CUSTOMERS_TABLE)) {
+  throw new Error('CUSTOMERS_TABLE contém caracteres inválidos.');
+}
 
 function response(statusCode, body) {
   return {
@@ -65,7 +70,7 @@ async function authenticate({ cpf } = {}) {
   }
 
   const result = await pool.query(
-    `SELECT * FROM ${CUSTOMERS_TABLE} WHERE cpf = $1`,
+    `SELECT * FROM "${CUSTOMERS_TABLE}" WHERE cpf = $1`,
     [cleanCpf]
   );
 
