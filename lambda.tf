@@ -18,13 +18,12 @@ resource "aws_security_group" "lambda_sg" {
   }
 }
 
-# Retencao curta para o log group ficar dentro do free tier de CloudWatch Logs (5GB).
-# Sem isso, o Lambda cria o log group automaticamente com retencao infinita.
-resource "aws_cloudwatch_log_group" "authenticate" {
-  name              = "/aws/lambda/${var.project_name}-authenticate"
-  retention_in_days = 7
-}
-
+# O usuario dev-techchallenge nao tem permissao de logs:CreateLogGroup, entao o log
+# group nao e criado explicitamente aqui - a propria Lambda cria automaticamente na
+# primeira execucao, usando a permissao que ja vem da role de execucao dela
+# (AWSLambdaBasicExecutionRole). Fica sem retention_in_days definido (retencao
+# infinita) ate essa permissao ser liberada; ajustar manualmente ou reativar este
+# recurso quando "logs:CreateLogGroup"/"logs:PutRetentionPolicy" forem concedidos.
 resource "aws_lambda_function" "authenticate" {
   function_name = "${var.project_name}-authenticate"
   role          = aws_iam_role.lambda_exec.arn
@@ -35,8 +34,6 @@ resource "aws_lambda_function" "authenticate" {
 
   filename         = "${path.module}/../authenticate.zip"
   source_code_hash = filebase64sha256("${path.module}/../authenticate.zip")
-
-  depends_on = [aws_cloudwatch_log_group.authenticate]
 
   environment {
     variables = {

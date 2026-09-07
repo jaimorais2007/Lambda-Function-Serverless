@@ -68,14 +68,20 @@ para liberar a porta 5432. Aplique este repositório **antes** daquele.
 
 ## Free tier
 
-- `memory_size = 128` (mínimo) e `aws_cloudwatch_log_group` com `retention_in_days = 7`
-  para o log da função não crescer indefinidamente — mantém Lambda e CloudWatch Logs
-  dentro do free tier.
+- `memory_size = 128` (mínimo), o suficiente para essa função e o que mantém o uso
+  dentro do free tier de Lambda.
 - Sem NAT Gateway/VPC Link: a Lambda fica na mesma subnet pública do EC2 e acessa o
   Postgres diretamente pelo IP privado, sem custo de rede adicional.
+- O log group do CloudWatch (`/aws/lambda/oficina-mecanica-authenticate`) **não** é
+  criado pelo Terraform — o usuário `dev-techchallenge` não tem `logs:CreateLogGroup`.
+  A própria Lambda cria o log group automaticamente na primeira execução (usando a
+  permissão da própria role de execução), mas fica com retenção infinita. Se
+  `logs:CreateLogGroup`/`logs:PutRetentionPolicy` forem liberados no futuro, vale
+  recriar o recurso `aws_cloudwatch_log_group` com `retention_in_days` para não
+  acumular custo de armazenamento no CloudWatch Logs ao longo do tempo.
 
-Testado com `terraform plan` na conta real (168126498555, usuário `dev-techchallenge`):
-plano limpo, `6 to add, 0 to destroy`.
+Testado com `terraform plan`/`apply` na conta real (168126498555, usuário
+`dev-techchallenge`).
 
 ## Outputs
 
