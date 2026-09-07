@@ -11,7 +11,7 @@ terraform {
   # State remoto usado pelo repositório Infraestrutura-Kubernetes-Terraform
   # (infra/gateway.tf) para ler os outputs desta Lambda via terraform_remote_state.
   backend "s3" {
-    bucket = "meu-bucket-terraform-state"
+    bucket = "techchallenge-terraform-state-s3"
     key    = "auth-service/terraform.tfstate"
     region = "us-east-1"
   }

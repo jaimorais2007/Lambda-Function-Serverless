@@ -66,21 +66,16 @@ um security group próprio (`lambda_security_group_id`, no output) usado pelo re
 [`Infra-Banco-de-Dados-Gerenciado-Terraform`](https://github.com/jaimorais2007/Infra-Banco-de-Dados-Gerenciado-Terraform)
 para liberar a porta 5432. Aplique este repositório **antes** daquele.
 
-## ⚠️ Permissões AWS necessárias
+## Free tier
 
-O usuário IAM usado no projeto (`dev-techchallenge`) hoje só tem permissão de leitura em
-EC2 e de gerenciar Security Groups — **isso não é suficiente para este repositório**.
-Testado na conta real (168126498555): `lambda:ListFunctions` e `apigateway:GET` retornam
-`AccessDenied`, e não há permissão de `s3:*` para o backend remoto. Para aplicar este
-Terraform, é preciso adicionar ao usuário (ou a uma role assumida por ele) algo como:
+- `memory_size = 128` (mínimo) e `aws_cloudwatch_log_group` com `retention_in_days = 7`
+  para o log da função não crescer indefinidamente — mantém Lambda e CloudWatch Logs
+  dentro do free tier.
+- Sem NAT Gateway/VPC Link: a Lambda fica na mesma subnet pública do EC2 e acessa o
+  Postgres diretamente pelo IP privado, sem custo de rede adicional.
 
-- `lambda:*` na função `oficina-mecanica-authenticate`
-- `iam:CreateRole`, `iam:PutRolePolicy`, `iam:AttachRolePolicy`, `iam:PassRole` na role
-  `oficina-mecanica-lambda-exec-role`
-- `ec2:CreateSecurityGroup`, `ec2:DescribeSubnets`, `ec2:DescribeSecurityGroups` (para o
-  security group da Lambda)
-- `s3:GetObject`, `s3:PutObject`, `s3:ListBucket` no bucket `meu-bucket-terraform-state`
-  (backend do state)
+Testado com `terraform plan` na conta real (168126498555, usuário `dev-techchallenge`):
+plano limpo, `6 to add, 0 to destroy`.
 
 ## Outputs
 

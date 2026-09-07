@@ -18,15 +18,25 @@ resource "aws_security_group" "lambda_sg" {
   }
 }
 
+# Retencao curta para o log group ficar dentro do free tier de CloudWatch Logs (5GB).
+# Sem isso, o Lambda cria o log group automaticamente com retencao infinita.
+resource "aws_cloudwatch_log_group" "authenticate" {
+  name              = "/aws/lambda/${var.project_name}-authenticate"
+  retention_in_days = 7
+}
+
 resource "aws_lambda_function" "authenticate" {
   function_name = "${var.project_name}-authenticate"
   role          = aws_iam_role.lambda_exec.arn
   handler       = "index.handler"
   runtime       = "nodejs20.x"
   timeout       = 10
+  memory_size   = 128 # minimo permitido; suficiente para essa funcao e mantem o uso dentro do free tier
 
   filename         = "${path.module}/../authenticate.zip"
   source_code_hash = filebase64sha256("${path.module}/../authenticate.zip")
+
+  depends_on = [aws_cloudwatch_log_group.authenticate]
 
   environment {
     variables = {
