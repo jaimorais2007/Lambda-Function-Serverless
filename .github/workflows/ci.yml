@@ -17,7 +17,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate repository
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      - name: Package Lambda deployment artifact
         run: |
-          echo "Repository: Lambda-Function-Serverless"
-          echo "CI pipeline executed successfully"
+          mkdir -p dist
+          zip -r ../authenticate.zip index.js node_modules package.json
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -diff
+
+      - name: Terraform validate
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate

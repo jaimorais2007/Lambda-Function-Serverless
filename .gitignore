@@ -1,3 +1,7 @@
+# Node
+node_modules/
+authenticate.zip
+
 # Environment
 .env
 .env.*
