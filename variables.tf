@@ -22,12 +22,6 @@ variable "jwt_expires_in" {
   default     = "1m"
 }
 
-variable "allowed_statuses" {
-  description = "Lista de status de cliente aptos a autenticar, separados por vírgula (ex: 'ATIVO,PENDENTE')"
-  type        = string
-  default     = "ATIVO"
-}
-
 variable "rds_hostname" {
   description = "Endpoint do banco de dados PostgreSQL (RDS) usado para consultar o cliente pelo CPF"
   type        = string
@@ -56,9 +50,9 @@ variable "rds_db_name" {
 }
 
 variable "customers_table" {
-  description = "Nome da tabela de clientes consultada no RDS"
+  description = "Nome da tabela de clientes consultada no RDS (schema real do EF Core: tabela \"Customers\", CPF na coluna \"Document_Value\", ativo/inativo na coluna \"Inactive\")"
   type        = string
-  default     = "customers"
+  default     = "Customers"
 }
 
 variable "subnet_ids" {

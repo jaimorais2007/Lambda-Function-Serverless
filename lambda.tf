@@ -37,15 +37,14 @@ resource "aws_lambda_function" "authenticate" {
 
   environment {
     variables = {
-      RDS_HOSTNAME     = var.rds_hostname
-      RDS_PORT         = var.rds_port
-      RDS_USERNAME     = var.rds_username
-      RDS_PASSWORD     = var.rds_password
-      RDS_DB_NAME      = var.rds_db_name
-      CUSTOMERS_TABLE  = var.customers_table
-      JWT_SECRET       = var.jwt_secret
-      JWT_EXPIRES_IN   = var.jwt_expires_in
-      ALLOWED_STATUSES = var.allowed_statuses
+      RDS_HOSTNAME    = var.rds_hostname
+      RDS_PORT        = var.rds_port
+      RDS_USERNAME    = var.rds_username
+      RDS_PASSWORD    = var.rds_password
+      RDS_DB_NAME     = var.rds_db_name
+      CUSTOMERS_TABLE = var.customers_table
+      JWT_SECRET      = var.jwt_secret
+      JWT_EXPIRES_IN  = var.jwt_expires_in
     }
   }
 

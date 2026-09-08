@@ -16,11 +16,6 @@ const pool = new pg.Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-const ALLOWED_STATUSES = (process.env.ALLOWED_STATUSES || '')
-  .split(',')
-  .map((s) => s.trim().toUpperCase())
-  .filter(Boolean);
-
 const SAFE_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
 if (CUSTOMERS_TABLE && !SAFE_IDENTIFIER.test(CUSTOMERS_TABLE)) {
   throw new Error('CUSTOMERS_TABLE contém caracteres inválidos.');
@@ -70,7 +65,7 @@ async function authenticate({ cpf } = {}) {
   }
 
   const result = await pool.query(
-    `SELECT * FROM "${CUSTOMERS_TABLE}" WHERE cpf = $1`,
+    `SELECT "Id", "Inactive" FROM "${CUSTOMERS_TABLE}" WHERE "Document_Value" = $1`,
     [cleanCpf]
   );
 
@@ -80,18 +75,14 @@ async function authenticate({ cpf } = {}) {
     return response(404, { message: 'Cliente não encontrado.' });
   }
 
-  const status = String(customer.status || '').toUpperCase();
-  if (!ALLOWED_STATUSES.includes(status)) {
-    return response(403, {
-      message: `Cliente com status "${customer.status}" não está apto a autenticar.`,
-    });
+  if (customer.Inactive) {
+    return response(403, { message: 'Cliente inativo, não apto a autenticar.' });
   }
 
   const token = jwt.sign(
     {
       sub: cleanCpf,
-      customerId: customer.customerId || customer.id || cleanCpf,
-      status,
+      customerId: customer.Id,
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }

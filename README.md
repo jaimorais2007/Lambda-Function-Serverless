@@ -3,8 +3,10 @@
 Função AWS Lambda (Node.js 20.x) que autentica um cliente por CPF:
 
 1. Valida o CPF (dígitos verificadores).
-2. Consulta a existência e o status do cliente no banco de dados PostgreSQL (RDS).
-3. Se o cliente existir e o status estiver na lista de status permitidos, emite um token JWT.
+2. Consulta a existência do cliente e se está ativo no banco de dados PostgreSQL (RDS),
+   no schema real da aplicação principal ([`Aplicacao-principal-executando-em-Kubernetes`](https://github.com/jaimorais2007/Aplicacao-principal-executando-em-Kubernetes),
+   tabela EF Core `Customers`).
+3. Se o cliente existir e não estiver inativo, emite um token JWT.
 
 ## Requisição
 
@@ -21,7 +23,7 @@ Content-Type: application/json
 |---|---|---|
 | CPF inválido | 400 | `{ "message": "CPF inválido." }` |
 | Cliente não encontrado | 404 | `{ "message": "Cliente não encontrado." }` |
-| Status não permitido | 403 | `{ "message": "Cliente com status \"X\" não está apto a autenticar." }` |
+| Cliente inativo | 403 | `{ "message": "Cliente inativo, não apto a autenticar." }` |
 | Sucesso | 200 | `{ "token", "tokenType": "Bearer", "expiresIn" }` |
 
 ## Variáveis de ambiente
@@ -33,12 +35,14 @@ Content-Type: application/json
 | `RDS_USERNAME` | Usuário de conexão |
 | `RDS_PASSWORD` | Senha de conexão |
 | `RDS_DB_NAME` | Nome do banco |
-| `CUSTOMERS_TABLE` | Tabela de clientes consultada (padrão `customers`) |
+| `CUSTOMERS_TABLE` | Tabela de clientes consultada (padrão `Customers`, igual ao `DbSet<Customer>` do EF Core) |
 | `JWT_SECRET` | Segredo usado para assinar o token |
 | `JWT_EXPIRES_IN` | Expiração do token (ex: `1h`) |
-| `ALLOWED_STATUSES` | Status aptos a autenticar, separados por vírgula (ex: `ATIVO,PENDENTE`) |
 
-A tabela `customers`/`CUSTOMERS_TABLE` precisa ter, no mínimo, as colunas `cpf` e `status`.
+A consulta é `SELECT "Id", "Inactive" FROM "Customers" WHERE "Document_Value" = $1`,
+batendo com o schema real gerado pelo EF Core (`OficinaDbContext`/migration
+`InitialCreate`): CPF/CNPJ fica na coluna `Document_Value` (owned entity `Document`), e
+não existe coluna de "status" — só o booleano `Inactive`.
 
 ## Deploy (Terraform)
 
