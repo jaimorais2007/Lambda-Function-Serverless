@@ -42,6 +42,7 @@ resource "aws_lambda_function" "authenticate" {
       RDS_USERNAME    = var.rds_username
       RDS_PASSWORD    = var.rds_password
       RDS_DB_NAME     = var.rds_db_name
+      RDS_SSL         = var.rds_ssl
       CUSTOMERS_TABLE = var.customers_table
       JWT_SECRET      = var.jwt_secret
       JWT_EXPIRES_IN  = var.jwt_expires_in

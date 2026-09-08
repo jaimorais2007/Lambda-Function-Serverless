@@ -7,13 +7,18 @@ const CUSTOMERS_TABLE = process.env.CUSTOMERS_TABLE;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
+const RDS_SSL = String(process.env.RDS_SSL || '').toLowerCase() === 'true';
+
 const pool = new pg.Pool({
     host: process.env.RDS_HOSTNAME,
     user: process.env.RDS_USERNAME,
     password: process.env.RDS_PASSWORD,
     database: process.env.RDS_DB_NAME,
     port: process.env.RDS_PORT || 5432,
-    ssl: { rejectUnauthorized: false }
+    // O Postgres deste projeto roda via docker-compose sem certificado (RDS_SSL=false
+    // por padrao). O pg client, com um objeto "ssl" definido, falha a conexao quando o
+    // servidor nao suporta SSL - diferente do psql, que cai pra texto plano sozinho.
+    ssl: RDS_SSL ? { rejectUnauthorized: false } : false,
 });
 
 const SAFE_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;

@@ -49,6 +49,12 @@ variable "rds_db_name" {
   type        = string
 }
 
+variable "rds_ssl" {
+  description = "Usar SSL na conexão com o Postgres ('true'/'false'). O Postgres deste projeto roda via docker-compose sem certificado, então o padrão é 'false'."
+  type        = string
+  default     = "false"
+}
+
 variable "customers_table" {
   description = "Nome da tabela de clientes consultada no RDS (schema real do EF Core: tabela \"Customers\", CPF na coluna \"Document_Value\", ativo/inativo na coluna \"Inactive\")"
   type        = string
