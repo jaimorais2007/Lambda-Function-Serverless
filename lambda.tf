@@ -46,6 +46,8 @@ resource "aws_lambda_function" "authenticate" {
       CUSTOMERS_TABLE = var.customers_table
       JWT_SECRET      = var.jwt_secret
       JWT_EXPIRES_IN  = var.jwt_expires_in
+      JWT_ISSUER      = var.jwt_issuer
+      JWT_AUDIENCE    = var.jwt_audience
     }
   }
 

@@ -6,7 +6,11 @@ Função AWS Lambda (Node.js 20.x) que autentica um cliente por CPF:
 2. Consulta a existência do cliente e se está ativo no banco de dados PostgreSQL (RDS),
    no schema real da aplicação principal ([`Aplicacao-principal-executando-em-Kubernetes`](https://github.com/jaimorais2007/Aplicacao-principal-executando-em-Kubernetes),
    tabela EF Core `Customers`).
-3. Se o cliente existir e não estiver inativo, emite um token JWT.
+3. Se o cliente existir e não estiver inativo, emite um token JWT com claim `role: "admin"`.
+
+> A aplicação principal ainda não usa `[Authorize(Roles = ...)]` em nenhum controller nem
+> emite claim de role no próprio login (`/api/auth/login`) — o token desta Lambda e o do
+> login da aplicação são independentes, com segredos diferentes.
 
 ## Requisição
 
@@ -36,8 +40,14 @@ Content-Type: application/json
 | `RDS_PASSWORD` | Senha de conexão |
 | `RDS_DB_NAME` | Nome do banco |
 | `CUSTOMERS_TABLE` | Tabela de clientes consultada (padrão `Customers`, igual ao `DbSet<Customer>` do EF Core) |
-| `JWT_SECRET` | Segredo usado para assinar o token |
+| `JWT_SECRET` | Segredo usado para assinar o token — **deve ser igual ao `Jwt__Secret` da aplicação principal** (Secret k8s `oficina-mecanica-api-secret`), senão os tokens de um não validam no outro |
 | `JWT_EXPIRES_IN` | Expiração do token (ex: `1h`) |
+| `JWT_ISSUER` | Claim `iss` (padrão `oficina-api`, igual ao `Jwt__Issuer` da aplicação principal) |
+| `JWT_AUDIENCE` | Claim `aud` (padrão `oficina-clientes`, igual ao `Jwt__Audience` da aplicação principal) |
+
+A aplicação principal valida `ValidateIssuer`/`ValidateAudience` (`AutenticationConfiguration.cs`),
+então segredo, issuer e audience precisam bater os três para um token emitido aqui ser
+aceito pelas rotas `[Authorize]` da aplicação.
 
 A consulta é `SELECT "Id", "Inactive" FROM "Customers" WHERE "Document_Value" = $1`,
 batendo com o schema real gerado pelo EF Core (`OficinaDbContext`/migration
