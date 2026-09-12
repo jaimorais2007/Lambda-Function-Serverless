@@ -56,15 +56,20 @@ não existe coluna de "status" — só o booleano `Inactive`.
 
 ## Deploy (Terraform)
 
-Este repositório provisiona a função Lambda e a role de execução via Terraform, e publica o
-state em S3 (`versions.tf`) para que o repositório
+Este repositório provisiona duas funções Lambda e a role de execução via Terraform, e
+publica o state em S3 (`versions.tf`) para que o repositório
 [`Infraestrutura-Kubernetes-Terraform`](../Infraestrutura-Kubernetes-Terraform) possa
-integrá-la a um API Gateway através de `terraform_remote_state`.
+integrá-las a um API Gateway através de `terraform_remote_state`:
+
+- `authenticate` (`index.js`): valida o CPF e emite o JWT (rota pública `POST /authenticate`).
+- `authorizer` (`authorizer.js`): Lambda Authorizer (`REQUEST`, resposta simples) usada pelo
+  API Gateway para validar o JWT (assinatura, `iss`, `aud`, expiração) nas demais rotas antes
+  de encaminhar a chamada para a aplicação principal. Não acessa o RDS, só o `JWT_SECRET`.
 
 ```bash
 npm ci --omit=dev
-# empacota index.js + node_modules em ../authenticate.zip
-zip -r ../authenticate.zip index.js node_modules package.json
+# empacota index.js + authorizer.js + node_modules em ../authenticate.zip
+zip -r ../authenticate.zip index.js authorizer.js node_modules package.json
 
 terraform init
 terraform apply \
@@ -102,4 +107,7 @@ Testado com `terraform plan`/`apply` na conta real (168126498555, usuário
 - `authenticate_lambda_arn`
 - `authenticate_lambda_invoke_arn` — usado pela integração `AWS_PROXY` do API Gateway
 - `authenticate_lambda_function_name` — usado na permissão do API Gateway
+- `authorizer_lambda_arn`
+- `authorizer_lambda_invoke_arn` — usado pelo `aws_apigatewayv2_authorizer` do API Gateway
+- `authorizer_lambda_function_name` — usado na permissão do API Gateway para o authorizer
 - `lambda_exec_role_arn` / `lambda_exec_role_name`

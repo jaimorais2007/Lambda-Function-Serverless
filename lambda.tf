@@ -60,6 +60,26 @@ resource "aws_lambda_function" "authenticate" {
   }
 }
 
+resource "aws_lambda_function" "authorizer" {
+  function_name = "${var.project_name}-authorizer"
+  role          = aws_iam_role.lambda_exec.arn
+  handler       = "authorizer.handler"
+  runtime       = "nodejs20.x"
+  timeout       = 5
+  memory_size   = 128 # minimo permitido; so valida assinatura/claims do JWT, nao acessa o RDS
+
+  filename         = "${path.module}/../authenticate.zip"
+  source_code_hash = filebase64sha256("${path.module}/../authenticate.zip")
+
+  environment {
+    variables = {
+      JWT_SECRET   = var.jwt_secret
+      JWT_ISSUER   = var.jwt_issuer
+      JWT_AUDIENCE = var.jwt_audience
+    }
+  }
+}
+
 resource "aws_iam_role" "lambda_exec" {
   name = "${var.project_name}-lambda-exec-role"
 
@@ -84,6 +104,7 @@ resource "aws_iam_role_policy_attachment" "lambda_vpc_access" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
-# A permissão para o API Gateway invocar esta função é criada no repositório
-# Infraestrutura-Kubernetes-Terraform (infra/gateway.tf), que consome os outputs
-# deste state via terraform_remote_state e restringe o invocador à API criada lá.
+# A permissão para o API Gateway invocar esta função (e a Lambda authorizer abaixo) é
+# criada no repositório Infraestrutura-Kubernetes-Terraform (infra/gateway.tf e
+# infra/authorizer.tf), que consome os outputs deste state via terraform_remote_state
+# e restringe o invocador à API criada lá.

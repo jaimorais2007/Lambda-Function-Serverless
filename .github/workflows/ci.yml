@@ -28,7 +28,7 @@ jobs:
       - name: Package Lambda deployment artifact
         run: |
           mkdir -p dist
-          zip -r ../authenticate.zip index.js node_modules package.json
+          zip -r ../authenticate.zip index.js authorizer.js node_modules package.json
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
