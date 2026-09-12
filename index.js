@@ -6,6 +6,8 @@ const pg = require('pg');
 const CUSTOMERS_TABLE = process.env.CUSTOMERS_TABLE;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
+const JWT_ISSUER = process.env.JWT_ISSUER;
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE;
 
 const RDS_SSL = String(process.env.RDS_SSL || '').toLowerCase() === 'true';
 
@@ -88,9 +90,14 @@ async function authenticate({ cpf } = {}) {
     {
       sub: cleanCpf,
       customerId: customer.Id,
+      role: 'admin',
     },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    {
+      expiresIn: JWT_EXPIRES_IN,
+      ...(JWT_ISSUER ? { issuer: JWT_ISSUER } : {}),
+      ...(JWT_AUDIENCE ? { audience: JWT_AUDIENCE } : {}),
+    }
   );
 
   return response(200, { token, tokenType: 'Bearer', expiresIn: JWT_EXPIRES_IN });
