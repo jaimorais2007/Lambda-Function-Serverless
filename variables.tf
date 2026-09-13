@@ -11,7 +11,7 @@ variable "project_name" {
 }
 
 variable "jwt_secret" {
-  description = "Segredo usado para assinar os tokens JWT (defina via terraform.tfvars ou -var, não versione o valor real)"
+  description = "Segredo usado para assinar os tokens JWT. Deve ser o MESMO segredo usado pela aplicação principal (Jwt__Secret, no Secret k8s oficina-mecanica-api-secret) para os tokens serem intercambiáveis. Defina via terraform.tfvars ou -var, não versione o valor real."
   type        = string
   sensitive   = true
 }
@@ -20,6 +20,18 @@ variable "jwt_expires_in" {
   description = "Tempo de expiração do token JWT"
   type        = string
   default     = "1m"
+}
+
+variable "jwt_issuer" {
+  description = "Issuer (iss) do token JWT - precisa bater com Jwt__Issuer da aplicação principal, que valida ValidateIssuer=true"
+  type        = string
+  default     = "oficina-api"
+}
+
+variable "jwt_audience" {
+  description = "Audience (aud) do token JWT - precisa bater com Jwt__Audience da aplicação principal, que valida ValidateAudience=true"
+  type        = string
+  default     = "oficina-clientes"
 }
 
 variable "rds_hostname" {
